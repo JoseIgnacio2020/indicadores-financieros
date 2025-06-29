@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es" ng-app="indicadorApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indicadores Financieros</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+</head>
+<body>
+
+    <div ng-view></div>
+
+    <script src="node_modules/angular/angular.min.js"></script>
+    <script src="node_modules/angular-route/angular-route.min.js"></script>
+
+    <script src="app/app.js"></script>
+    <script src="app/services/api.service.js"></script>
+    <script src="app/controllers/list.controller.js"></script>
+    <script src="app/controllers/detail.controller.js"></script>
+</body>
+</html>

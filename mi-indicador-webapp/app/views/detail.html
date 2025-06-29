@@ -1,0 +1,8 @@
+<h1>Detalle de: {{ codigoIndicador }}</h1>
+<canvas id="line" class="chart chart-line" chart-data="data" chart-labels="labels"></canvas>
+
+<ul class="list-group mt-3">
+    <li class="list-group-item" ng-repeat="item in historicos | limitTo:-30">
+        {{ item.Fecha }}: <strong>{{ item.Valor }}</strong>
+    </li>
+</ul>
