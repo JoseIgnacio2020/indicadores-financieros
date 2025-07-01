@@ -10,10 +10,14 @@
       Unidad: {{ unidad }}
     </div>
     <ul class="list-group">
-      <li class="list-group-item list-group-item-detail" ng-repeat="h in historicos">
-        <span class="list-date">{{ h.Fecha }}</span>
+      <li class="list-group-item list-group-item-detail"
+          ng-repeat="h in historicos">
+        <!-- fecha en color azul y formato dd/mm/yyyy -->
+        <span class="list-date">{{ h.Fecha | formatFecha }}</span>
+        <!-- valor con símbolo, usando tu filter formatValor -->
         <strong>{{ h.Valor | formatValor:codigo }}</strong>
       </li>
     </ul>
+    <div class="alert alert-danger mt-3" ng-if="error">{{ error }}</div>
   </div>
 </div>
