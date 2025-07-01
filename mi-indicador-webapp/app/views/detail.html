@@ -1,8 +1,18 @@
-<h1>Detalle de: {{ codigoIndicador }}</h1>
-<canvas id="line" class="chart chart-line" chart-data="data" chart-labels="labels"></canvas>
+<div class="card card-centered shadow-sm">
+  <div class="header-centered">
+    <a href="#!/valores/{{ $routeParams.codigo }}" class="back-link">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <h2 class="mb-0">{{ titulo }}</h2>
+  </div>
+  <div class="card-body">
+    <div class="valor-actual">{{ historicos[historicos.length-1].Valor | formatValor:codigo }}</div>
+    <div class="detalle-sub">
+      Fecha: {{ historicos[historicos.length-1].Fecha }} |
+      Unidad: {{ unidad }}
+    </div>
 
-<ul class="list-group mt-3">
-    <li class="list-group-item" ng-repeat="item in historicos | limitTo:-30">
-        {{ item.Fecha }}: <strong>{{ item.Valor }}</strong>
-    </li>
-</ul>
+    <canvas id="barChart" class="detail-chart"></canvas>
+    <div class="alert alert-danger mt-3" ng-if="error">{{ error }}</div>
+  </div>
+</div>

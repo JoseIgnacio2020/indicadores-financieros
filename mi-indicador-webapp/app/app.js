@@ -1,21 +1,17 @@
-'use strict';
-
-var app = angular.module('indicadorApp', [
-  'ngRoute' // Módulo de rutas de AngularJS
-]);
-
-// Configurar las rutas
-app.config(function($routeProvider) {
-  $routeProvider
-    .when('/indicadores', {
-      templateUrl: 'app/views/list.html',
-      controller: 'ListController'
-    })
-    .when('/indicador/:codigo', {
-      templateUrl: 'app/views/detail.html',
-      controller: 'DetailController'
-    })
-    .otherwise({
-      redirectTo: '/indicadores'
-    });
-});
+angular.module('indicadorApp', ['ngRoute'])
+  .config(['$routeProvider', function($routeProvider) {
+    $routeProvider
+      .when('/', {
+        templateUrl: 'app/views/inicio.html',
+        controller: 'InicioController'
+      })
+      .when('/valores/:codigo', {
+        templateUrl: 'app/views/list.html',
+        controller: 'ListValuesController'
+      })
+      .when('/detalle/:codigo', {
+        templateUrl: 'app/views/detail.html',
+        controller: 'ChartController'
+      })
+      .otherwise({ redirectTo: '/' });
+  }]);
