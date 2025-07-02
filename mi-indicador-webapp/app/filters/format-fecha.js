@@ -2,10 +2,10 @@
 angular.module('indicadorApp')
   .filter('formatFecha', function() {
     return function(fechaStr) {
-      var d = new Date(fechaStr);
-      var dd = ('0' + d.getDate()).slice(-2);
-      var mm = ('0' + (d.getMonth() + 1)).slice(-2);
-      var yyyy = d.getFullYear();
-      return dd + '/' + mm + '/' + yyyy;
+      if (!fechaStr) return '';
+      // fechaStr es "YYYY-MM-DD" o "YYYY-MM-DDThh:mm:ss"
+      var s = fechaStr.split('T')[0];   // elimina hora si la hubiera
+      var parts = s.split('-');         // ["YYYY","MM","DD"]
+      return parts[2] + '/' + parts[1] + '/' + parts[0];
     };
   });

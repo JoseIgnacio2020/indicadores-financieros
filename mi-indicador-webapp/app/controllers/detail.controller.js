@@ -1,79 +1,156 @@
 'use strict';
 
 angular.module('indicadorApp')
-  .controller('ChartController', ['$scope', '$routeParams', 'ApiService',
-    function($scope, $routeParams, ApiService) {
+  .controller('ChartController', [
+    '$scope', '$routeParams', 'ApiService', 'formatFechaFilter',
+    function($scope, $routeParams, ApiService, formatFechaFilter) {
       var codigo = $routeParams.codigo;
       $scope.codigo = codigo;
+
+      // 1) Calcula hoy en formato local YYYY-MM-DD
+      var hoy = new Date();
+      var dd = ('0' + hoy.getDate()).slice(-2);
+      var mm = ('0' + (hoy.getMonth() + 1)).slice(-2);
+      var yyyy = hoy.getFullYear();
+      var hoyStr = yyyy + '-' + mm + '-' + dd;
 
       ApiService.getIndicadores().then(function(list) {
         var meta = list.find(i => i.codigo === codigo);
         $scope.titulo = meta.nombre;
         $scope.unidad = meta.unidad;
-        var tipo      = meta.tipo;
+        var tipo = meta.tipo;
 
-        var hoy      = new Date(),
-            fechaFin = hoy,
-            fechaIni = new Date(hoy);
-
-        // definimos rango según tipo
         if (tipo === 'periodo') {
-          // últimos 10 días
-          fechaIni.setDate(hoy.getDate() - 10);
-          var anoI = fechaIni.getFullYear(),
-              mesI = ('0' + (fechaIni.getMonth()+1)).slice(-2),
-              anoF = fechaFin.getFullYear(),
-              mesF = ('0' + (fechaFin.getMonth()+1)).slice(-2);
+          // 2) Define rango de 10 días atrás
+          var fechaIniDate = new Date(hoy);
+          fechaIniDate.setDate(hoy.getDate() - 10);
+          var di = ('0' + fechaIniDate.getDate()).slice(-2);
+          var mi = ('0' + (fechaIniDate.getMonth() + 1)).slice(-2);
+          var yi = fechaIniDate.getFullYear();
+          var fechaIniStr = yi + '-' + mi + '-' + di;
 
-          ApiService.getIndicadorPeriodoRange(codigo, anoI, mesI, anoF, mesF)
-            .then(res => procesarGrafico(res.data[Object.keys(res.data)[0]], fechaIni, tipo))
-            .catch(err => $scope.error = 'No se pudieron cargar los datos');
+          // 3) Llama al endpoint de período mes-año
+          var yyyyF = yyyy, mmF = mm,
+              yyyyI = yi, mmI = mi;
+
+          ApiService.getIndicadorPeriodoRange(codigo, yyyyI, mmI, yyyyF, mmF)
+            .then(function(res) {
+              var key = Object.keys(res.data)[0];
+              var arr = res.data[key];
+
+              // 4) Filtra entre fechaIniStr y hoyStr (ambos inclusive)
+              var filtered = arr.filter(function(item) {
+                var dateOnly = item.Fecha.split('T')[0];
+                return dateOnly >= fechaIniStr && dateOnly <= hoyStr;
+              });
+
+              // 5) Ordena descendente por cadena YYYY-MM-DD
+              var sortedDesc = filtered.sort(function(a, b) {
+                return a.Fecha < b.Fecha ? 1 : -1;
+              });
+
+              // 6) Toma los primeros 10 registros (más recientes)
+              var sliceDesc = sortedDesc.slice(0, 10);
+
+              // 7) Asigna valor y fecha actual
+              var current = sliceDesc[0];
+              $scope.valorActual = formatValor(current.Valor, codigo);
+              $scope.fechaActual = formatFechaFilter(current.Fecha);
+
+              // 8) Prepara datos para gráfico en orden ascendente
+              var sliceAsc = sliceDesc.slice().reverse();
+              var labels = sliceAsc.map(d => formatFechaFilter(d.Fecha));
+              var values = sliceAsc.map(d => 
+                parseFloat(d.Valor.replace(/\./g, '').replace(',', '.'))
+              );
+
+              // 9) Dibuja gráfico de línea
+              var ctx = document.getElementById('barChart').getContext('2d');
+              new Chart(ctx, {
+                type: 'line',
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    label: $scope.titulo,
+                    data: values,
+                    fill: false,
+                    tension: 0.1
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { ticks: { maxRotation: 0 } },
+                    y: { beginAtZero: false }
+                  },
+                  plugins: { legend: { display: false } }
+                }
+              });
+            })
+            .catch(function() {
+              $scope.error = 'No se pudieron cargar los datos del gráfico.';
+            });
+
         } else {
-          // últimos 12 meses → usamos todo el año y luego tomamos 12
-          var anio = hoy.getFullYear();
-          ApiService.getIndicadorAnio(codigo, anio)
-            .then(res => procesarGrafico(res.data[Object.keys(res.data)[0]], null, tipo))
-            .catch(err => $scope.error = 'No se pudieron cargar los datos');
+          // 10) IPC/UTM anual
+          ApiService.getIndicadorAnio(codigo, String(yyyy))
+            .then(function(res) {
+              var key = Object.keys(res.data)[0];
+              var arr = res.data[key]
+                .filter(item => item.Fecha.slice(0,4) === String(yyyy))
+                .sort((a,b) => a.Fecha < b.Fecha ? 1 : -1);
+
+              var sliceDesc = arr.slice(0, 12);
+              var current = sliceDesc[0];
+              $scope.valorActual = formatValor(current.Valor, codigo);
+              $scope.fechaActual = formatFechaFilter(current.Fecha);
+
+              var sliceAsc = sliceDesc.slice().reverse();
+              var labels = sliceAsc.map(d => formatFechaFilter(d.Fecha));
+              var values = sliceAsc.map(d =>
+                parseFloat(d.Valor.replace(/\./g, '').replace(',', '.'))
+              );
+
+              var ctx = document.getElementById('barChart').getContext('2d');
+              new Chart(ctx, {
+                type: 'line',
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    label: $scope.titulo,
+                    data: values,
+                    fill: false,
+                    tension: 0.1
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { ticks: { maxRotation: 0 } },
+                    y: { beginAtZero: false }
+                  },
+                  plugins: { legend: { display: false } }
+                }
+              });
+            })
+            .catch(function() {
+              $scope.error = 'No se pudieron cargar los datos del gráfico.';
+            });
         }
       });
 
-      function procesarGrafico(arr, fechaIni, tipo) {
-        if (tipo === 'periodo') {
-          arr = arr.filter(item => {
-            var f = new Date(item.Fecha);
-            return f >= fechaIni && f <= new Date();
-          });
-        } else {
-          arr = arr.filter(item => new Date(item.Fecha).getFullYear() === (new Date()).getFullYear());
+      // Helper para formatear valor con símbolo
+      function formatValor(v, codigo) {
+        switch(codigo) {
+          case 'dolar': return '$ ' + v;
+          case 'euro':  return '€ ' + v;
+          case 'uf':    return v + ' UF';
+          case 'ipc':   return v + ' %';
+          case 'utm':   return '$ ' + v;
+          default:      return v;
         }
-      
-        var sortedDesc = arr.sort((a,b) => new Date(b.Fecha) - new Date(a.Fecha));
-        var count = (tipo==='periodo' ? 10 : 12);
-        var slice = sortedDesc.slice(0, count).reverse();
-      
-        var labels = slice.map(d => {
-          var f = new Date(d.Fecha);
-          return ('0'+f.getDate()).slice(-2) + '/' + ('0'+(f.getMonth()+1)).slice(-2) + '/' + f.getFullYear();
-        });
-      
-        var values = slice.map(d => parseFloat(d.Valor.replace(',','.')));
-        $scope.historicos = sortedDesc;
-        $scope.valorActual = slice[slice.length-1].Valor;
-      
-        var ctx = document.getElementById('barChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'bar',
-          data: { labels, datasets:[{ label: $scope.titulo, data: values }] },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { ticks:{ maxRotation:0 } },
-              y: { beginAtZero:false }
-            },
-            plugins: { legend:{ display:false } }
-          }
-        });
-      }      
+      }
     }
   ]);

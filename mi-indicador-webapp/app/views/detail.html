@@ -1,19 +1,20 @@
-<div class="card card-centered shadow-sm">
+<div class="card card-wide shadow-sm">
   <div class="header-centered">
-    <a href="#!/valores/{{ codigo }}" class="back-link">
+    <a href="#!/" class="back-link">
       <i class="bi bi-arrow-left"></i> Volver
     </a>
     <h2 class="mb-0">{{ titulo }}</h2>
   </div>
   <div class="card-body">
-    <!-- valor actual con símbolo y grande -->
-    <div class="valor-actual">{{ valorActual | formatValor:codigo }}</div>
+    <div class="valor-actual">{{ valorActual }}</div>
     <div class="detalle-sub">
-      Fecha: {{ historicos[0].Fecha | formatFecha }} |
+      Fecha: {{ fechaActual }} |
       Unidad: {{ unidad }}
     </div>
 
-    <div style="height:300px; width:100%;"><canvas id="barChart"></canvas></div>
+    <div style="height:300px; width:100%;">
+      <canvas id="barChart"></canvas>
+    </div>
     <div class="alert alert-danger mt-3" ng-if="error">{{ error }}</div>
   </div>
 </div>
