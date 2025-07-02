@@ -15,19 +15,27 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        'https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js',
-        'https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular-mocks.js',
-        'app/app.js',
-        'app/mocks/mock-data.js',
-        'app/services/api-service.js',
-        'app/filters/format-valor.js',
-        'app/filters/format-fecha.js',
-        'app/controllers/InicioController.js',
-        'app/controllers/list.controller.js',
-        'app/controllers/detail.controller.js',
-        'test/*.spec.js'
-      ],      
+      // AngularJS y mocks
+      'https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js',
+      'https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular-mocks.js',
 
+      // Tu código fuente
+      'app/app.js',
+      'app/mocks/mock-data.js',
+
+      // Servicios y filtros
+      'app/services/api-service.js',
+      'app/filters/format-valor.js',
+      'app/filters/format-fecha.js',
+
+      // Controladores
+      'app/controllers/InicioController.js',
+      'app/controllers/list.controller.js',
+      'app/controllers/detail.controller.js',
+
+      // Specs
+      'test/*.spec.js'
+    ],     
 
     // list of files / patterns to exclude
     exclude: [
@@ -60,7 +68,7 @@ module.exports = function(config) {
 
 
     // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: true,
+    autoWatch: false,
 
 
     // start these browsers
