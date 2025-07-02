@@ -2,7 +2,7 @@
 
 angular.module('indicadorApp')
   .factory('ApiService', ['$http', '$q', 'MockData', function ($http, $q, MockData) {
-    var apiKey = 'e407e2e2ff335b9eff9561757c909a215902ccb0';
+    var apiKey = '';
     var base = 'https://api.cmfchile.cl/api-sbifv3/recursos_api';
     var useMock = false; // mock = false para históricos
 
